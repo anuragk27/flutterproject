@@ -1,12 +1,6 @@
-// ============================================================
-// lib/screens/home_page.dart
-// The main screen: search bar, notes grid/list and the "+" button.
-// ============================================================
-
-// import 'package:flutter/material.dart';
-
 import 'package:material_ui/material_ui.dart';
 import '../models/note.dart';
+import '../widgets/keep_drawer.dart';
 import '../widgets/note_card.dart';
 import 'note_editor_page.dart'; // same folder, so no '../' needed
 
@@ -31,7 +25,8 @@ class _HomePageState extends State<HomePage> {
   final List<Note> notes = [
     Note(
       title: '19/11/26 - Marine Form digital task',
-      body: 'SEC 2,3,5 - Harsh ✅\nSEC 6,7,8 - Subham\nSEC 9,10,11 - Anurag ✅\nSEC 12,14 - Surinder',
+      body:
+          'SEC 2,3,5 - Harsh ✅\nSEC 6,7,8 - Subham\nSEC 9,10,11 - Anurag ✅\nSEC 12,14 - Surinder',
     ),
     Note(body: '1. Self Awareness'),
     Note(
@@ -39,7 +34,8 @@ class _HomePageState extends State<HomePage> {
       body: '1. Added a new vessel\n2. Updated Contract form\n3.',
     ),
     Note(
-      body: "I'm working on a Flutter project. I want to add the "
+      body:
+          "I'm working on a Flutter project. I want to add the "
           "`device_preview` package so I can preview the app on "
           "different device sizes, but only when I explicitly turn it on.\n\n"
           "Task: Integrate Device Preview",
@@ -50,14 +46,36 @@ class _HomePageState extends State<HomePage> {
     ),
     Note(
       title: 'Contract of Employment Form',
-      body: "1. Input field size adjustment\n2. Table Positioning\n3. Formula's implementation\n\n# CONTRACT OF EMPLOYMENT\n...",
+      body:
+          "1. Input field size adjustment\n2. Table Positioning\n3. Formula's implementation\n\n# CONTRACT OF EMPLOYMENT\n...",
     ),
     Note(
       title: 'HEADER',
-      body: '<table border="1">\n  <tbody>\n    <tr>\n      <td style="width:80px;">',
+      body:
+          '<table border="1">\n  <tbody>\n    <tr>\n      <td style="width:80px;">',
     ),
     Note(body: 'If you are lost,\nthen find what attracts you.'),
   ];
+
+  // A GlobalKey gives us a "remote control" for the Scaffold, so we can
+  // open the drawer from our own menu button (which sits inside the body).
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  int selectedMenu = 0; // which drawer item is highlighted (0 = Notes)
+
+  // Called when a drawer item is tapped.
+  void _onMenuSelect(int index) {
+    // Items 0 (Notes), 1 (Reminders), 3 (Archive), 4 (Deleted) are screens.
+    // Items 2, 5, 6 are actions, so we don't highlight them.
+    const selectable = [0, 1, 3, 4];
+    if (selectable.contains(index)) {
+      setState(() => selectedMenu = index);
+    }
+    // For now show a small message; later you can open real screens.
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Menu item $index tapped')));
+  }
 
   bool isGrid = true; // true = 2 column grid, false = single list
   String query = ''; // text typed in the search bar
@@ -73,7 +91,8 @@ class _HomePageState extends State<HomePage> {
     final result = await Navigator.push<Object?>(
       context,
       MaterialPageRoute(
-        builder: (_) => NoteEditorPage(note: note ?? Note(), isNew: note == null),
+        builder: (_) =>
+            NoteEditorPage(note: note ?? Note(), isNew: note == null),
       ),
     );
 
@@ -102,7 +121,11 @@ class _HomePageState extends State<HomePage> {
 
     // Scaffold = basic page layout (body, app bar, floating button...)
     return Scaffold(
+      key: _scaffoldKey, // attach the remote control
       backgroundColor: bgColor,
+
+      // The slide-in menu. Swiping from the left edge also opens it.
+      drawer: KeepDrawer(selectedIndex: selectedMenu, onSelect: _onMenuSelect),
 
       // SafeArea keeps content away from the phone's notch/status bar.
       body: SafeArea(
@@ -135,7 +158,12 @@ class _HomePageState extends State<HomePage> {
   Widget _buildSearchBar() {
     // Container = a box where you can set color, margin, padding, shape.
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 10, 12, 10), // space outside the box
+      margin: const EdgeInsets.fromLTRB(
+        12,
+        10,
+        12,
+        10,
+      ), // space outside the box
       padding: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
         color: searchBarColor,
@@ -148,7 +176,8 @@ class _HomePageState extends State<HomePage> {
           // IconButton = a tappable icon
           IconButton(
             icon: const Icon(Icons.menu),
-            onPressed: () {}, // later: open a Drawer
+            onPressed: () =>
+                _scaffoldKey.currentState?.openDrawer(), // later: open a Drawer
           ),
           // TextField needs a bounded width inside a Row, so we
           // wrap it in Expanded to take all free horizontal space.
@@ -184,7 +213,10 @@ class _HomePageState extends State<HomePage> {
           const CircleAvatar(
             radius: 20,
             backgroundColor: Color(0xFF5B6BD5),
-            child: Text('a', style: TextStyle(fontSize: 20, color: Colors.white)),
+            child: Text(
+              'a',
+              style: TextStyle(fontSize: 20, color: Colors.white),
+            ),
           ),
           const SizedBox(width: 8), // SizedBox = empty spacer
         ],
@@ -204,7 +236,10 @@ class _HomePageState extends State<HomePage> {
     for (int i = 0; i < list.length; i++) {
       final card = Padding(
         padding: const EdgeInsets.only(bottom: 10),
-        child: NoteCard(note: list[i], onTap: () => _openEditor(note: list[i])),
+        child: NoteCard(
+          note: list[i],
+          onTap: () => _openEditor(note: list[i]),
+        ),
       );
       // even index -> left column, odd index -> right column
       if (i % 2 == 0) {
@@ -216,7 +251,12 @@ class _HomePageState extends State<HomePage> {
 
     // SingleChildScrollView lets the content scroll vertically.
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 100), // bottom space for the + button
+      padding: const EdgeInsets.fromLTRB(
+        12,
+        4,
+        12,
+        100,
+      ), // bottom space for the + button
       child: Row(
         // start = align both columns to the top
         crossAxisAlignment: CrossAxisAlignment.start,
