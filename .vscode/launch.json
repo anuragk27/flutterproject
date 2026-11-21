@@ -5,12 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "flutterproject",
+            "name": "todo_app",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "flutterproject (Device Preview)",
+            "name": "todo_app (Device Preview)",
             "request": "launch",
             "type": "dart",
             "args": [
@@ -18,13 +18,13 @@
             ]
         },
         {
-            "name": "flutterproject (profile mode)",
+            "name": "todo_app (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "flutterproject (release mode)",
+            "name": "todo_app (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
