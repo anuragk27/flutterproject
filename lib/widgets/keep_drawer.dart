@@ -43,12 +43,12 @@ class KeepDrawer extends StatelessWidget {
             // ---- Menu items ----
             // Each call builds one row. Index 0..3 can be "selected".
             _item(context, index: 0, icon: Icons.lightbulb_outline, label: 'Notes'),
-            _item(context, index: 1, icon: Icons.notifications_none, label: 'Reminders'),
-            _item(context, index: 2, icon: Icons.add, label: 'Create new label'),
+            // _item(context, index: 1, icon: Icons.notifications_none, label: 'Reminders'),
+            // _item(context, index: 2, icon: Icons.add, label: 'Create new label'),
             _item(context, index: 3, icon: Icons.archive_outlined, label: 'Archive'),
             _item(context, index: 4, icon: Icons.delete_outline, label: 'Deleted'),
-            _item(context, index: 5, icon: Icons.settings_outlined, label: 'Settings'),
-            _item(context, index: 6, icon: Icons.help_outline, label: 'Help & feedback'),
+            // _item(context, index: 5, icon: Icons.settings_outlined, label: 'Settings'),
+            // _item(context, index: 6, icon: Icons.help_outline, label: 'Help & feedback'),
           ],
         ),
       ),
