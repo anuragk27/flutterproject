@@ -22,7 +22,7 @@ class KeepDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     // Drawer = the panel that slides in from the left edge.
     return Drawer(
-      backgroundColor: const Color(0xFF202124),
+      backgroundColor: Colors.white,
       // Keep's drawer has a flat right edge, so remove default rounding.
       shape: const RoundedRectangleBorder(),
       // SafeArea keeps content away from the status bar.
@@ -35,7 +35,7 @@ class KeepDrawer extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.fromLTRB(16, 16, 16, 20),
               child: Text(
-                'Google Keep',
+                'To Do',
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
               ),
             ),
@@ -69,18 +69,21 @@ class KeepDrawer extends StatelessWidget {
 
     return ListTile(
       // Icon on the left, text next to it
-      leading: Icon(icon, color: selected ? const Color(0xFFC2D7FF) : Colors.white70),
+      leading: Icon(
+        icon,
+        color: selected ? const Color(0xFF1967D2) : const Color(0xFF5F6368),
+      ),
       title: Text(
         label,
         style: TextStyle(
           fontSize: 15,
-          color: selected ? const Color(0xFFC2D7FF) : Colors.white,
+          color: selected ? const Color(0xFF1967D2) : const Color(0xFF202124),
           fontWeight: selected ? FontWeight.w500 : FontWeight.normal,
         ),
       ),
-      // selected + selectedTileColor = the blue highlight
+      // selected + selectedTileColor = the soft blue highlight (Keep light theme)
       selected: selected,
-      selectedTileColor: const Color(0xFF2B50AA),
+      selectedTileColor: const Color(0xFFE8F0FE),
       // Round only the RIGHT side, so the pill touches the left edge
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
