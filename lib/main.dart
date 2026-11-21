@@ -62,8 +62,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       locale: DevicePreview.locale(context), // needed by Device Preview
       builder: DevicePreview.appBuilder,     // needed by Device Preview
-      // Dark theme so the text is white on the dark Keep background
-      theme: ThemeData(brightness: Brightness.dark, useMaterial3: true),
+      // Light theme
+      theme: ThemeData(brightness: Brightness.light, useMaterial3: true),
       home: const HomePage(), // was MyHomePage
     );
   }

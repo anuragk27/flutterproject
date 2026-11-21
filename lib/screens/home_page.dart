@@ -18,8 +18,8 @@ class HomePage extends StatefulWidget {
 // It holds the changing data (the "state") and the build() method.
 class _HomePageState extends State<HomePage> {
   // Colors used on this screen (0xFF + hex code)
-  static const Color bgColor = Color(0xFF202124);
-  static const Color searchBarColor = Color(0xFF3C4043);
+  static const Color bgColor = Colors.white;
+  static const Color searchBarColor = Color(0xFFF1F3F4);
 
   // Our list of notes (sample data to make the screen look filled)
   final List<Note> notes = [
@@ -186,7 +186,7 @@ class _HomePageState extends State<HomePage> {
               // onChanged runs on every key press
               onChanged: (value) => setState(() => query = value),
               decoration: const InputDecoration(
-                hintText: 'Search Keep',
+                hintText: 'Search',
                 border: InputBorder.none, // remove default underline
               ),
               style: const TextStyle(fontSize: 18),
@@ -210,14 +210,14 @@ class _HomePageState extends State<HomePage> {
             },
           ),
           // CircleAvatar = round profile picture / letter
-          const CircleAvatar(
-            radius: 20,
-            backgroundColor: Color(0xFF5B6BD5),
-            child: Text(
-              'a',
-              style: TextStyle(fontSize: 20, color: Colors.white),
-            ),
-          ),
+          // const CircleAvatar(
+          //   radius: 20,
+          //   backgroundColor: Color(0xFF5B6BD5),
+          //   child: Text(
+          //     'a',
+          //     style: TextStyle(fontSize: 20, color: Colors.white),
+          //   ),
+          // ),
           const SizedBox(width: 8), // SizedBox = empty spacer
         ],
       ),
