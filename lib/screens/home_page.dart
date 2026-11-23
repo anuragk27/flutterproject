@@ -24,37 +24,40 @@ class _HomePageState extends State<HomePage> {
   // Our list of notes (sample data to make the screen look filled)
   final List<Note> notes = [
     Note(
-      title: '19/11/26 - Marine Form digital task',
+      title: 'Flutter Learning',
       body:
-          'SEC 2,3,5 - Harsh ✅\nSEC 6,7,8 - Subham\nSEC 9,10,11 - Anurag ✅\nSEC 12,14 - Surinder',
+          '1. Learn StatefulWidget and StatelessWidget\n2. Practice Row and Column layouts\n3. Understand Expanded and Flexible\n4. Build a simple profile screen\n5. Revise Flutter fundamentals',
     ),
-    Note(body: '1. Self Awareness'),
+
     Note(
-      title: '17/11/2026',
-      body: '1. Added a new vessel\n2. Updated Contract form\n3.',
-    ),
-    Note(
+      title: 'Office Work',
       body:
-          "I'm working on a Flutter project. I want to add the "
-          "`device_preview` package so I can preview the app on "
-          "different device sizes, but only when I explicitly turn it on.\n\n"
-          "Task: Integrate Device Preview",
+          '1. Complete pending development tasks\n2. Review client requirements\n3. Fix reported application bugs\n4. Update project documentation\n5. Push latest changes to GitHub',
     ),
+
     Note(
-      title: 'OLD CONTRACT FORM',
-      body: 'Ship Name: ____\nAt: ____\nDate: ____\n...',
-    ),
-    Note(
-      title: 'Contract of Employment Form',
+      title: 'Personal Goals',
       body:
-          "1. Input field size adjustment\n2. Table Positioning\n3. Formula's implementation\n\n# CONTRACT OF EMPLOYMENT\n...",
+          '1. Wake up at 5:30 AM\n2. Complete morning workout\n3. Read 10 pages of a book\n4. Avoid unnecessary screen time\n5. Sleep before 11 PM',
     ),
+
     Note(
-      title: 'HEADER',
+      title: 'Shopping List',
       body:
-          '<table border="1">\n  <tbody>\n    <tr>\n      <td style="width:80px;">',
+          '1. Buy groceries\n2. Purchase shampoo and conditioner\n3. Get a new notebook\n4. Buy gym supplements\n5. Recharge mobile plan',
     ),
-    Note(body: 'If you are lost,\nthen find what attracts you.'),
+
+    Note(
+      title: 'Weekend Plans',
+      body:
+          '1. Clean and organize my room\n2. Complete pending Flutter practice\n3. Watch a movie\n4. Spend time with family\n5. Plan next week activities',
+    ),
+
+    Note(
+      title: 'Project Development',
+      body:
+          '1. Design the application homepage\n2. Implement user authentication\n3. Connect Firebase Firestore\n4. Add create, read, update and delete functionality\n5. Test application features\n6. Improve UI responsiveness',
+    ),
   ];
 
   // A GlobalKey gives us a "remote control" for the Scaffold, so we can
