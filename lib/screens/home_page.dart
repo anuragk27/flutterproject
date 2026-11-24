@@ -1,12 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 import '../models/note.dart';
+import '../services/firestore_service.dart';
 import '../widgets/keep_drawer.dart';
 import '../widgets/note_card.dart';
-import 'note_editor_page.dart'; // same folder, so no '../' needed
+import 'note_editor_page.dart';
 
-// StatefulWidget = a widget whose data can change (notes list,
-// search text, grid/list toggle). When data changes we call
-// setState() and Flutter redraws the screen.
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -14,83 +12,31 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-// The class starting with "_" is private to this file.
-// It holds the changing data (the "state") and the build() method.
 class _HomePageState extends State<HomePage> {
-  // Colors used on this screen (0xFF + hex code)
+  // Colors used on this screen
   static const Color bgColor = Colors.white;
   static const Color searchBarColor = Color(0xFFF1F3F4);
 
-  // Our list of notes (sample data to make the screen look filled)
-  final List<Note> notes = [
-    Note(
-      title: 'Flutter Learning',
-      body:
-          '1. Learn StatefulWidget and StatelessWidget\n2. Practice Row and Column layouts\n3. Understand Expanded and Flexible\n4. Build a simple profile screen\n5. Revise Flutter fundamentals',
-    ),
-
-    Note(
-      title: 'Office Work',
-      body:
-          '1. Complete pending development tasks\n2. Review client requirements\n3. Fix reported application bugs\n4. Update project documentation\n5. Push latest changes to GitHub',
-    ),
-
-    Note(
-      title: 'Personal Goals',
-      body:
-          '1. Wake up at 5:30 AM\n2. Complete morning workout\n3. Read 10 pages of a book\n4. Avoid unnecessary screen time\n5. Sleep before 11 PM',
-    ),
-
-    Note(
-      title: 'Shopping List',
-      body:
-          '1. Buy groceries\n2. Purchase shampoo and conditioner\n3. Get a new notebook\n4. Buy gym supplements\n5. Recharge mobile plan',
-    ),
-
-    Note(
-      title: 'Weekend Plans',
-      body:
-          '1. Clean and organize my room\n2. Complete pending Flutter practice\n3. Watch a movie\n4. Spend time with family\n5. Plan next week activities',
-    ),
-
-    Note(
-      title: 'Project Development',
-      body:
-          '1. Design the application homepage\n2. Implement user authentication\n3. Connect Firebase Firestore\n4. Add create, read, update and delete functionality\n5. Test application features\n6. Improve UI responsiveness',
-    ),
-  ];
-
-  // A GlobalKey gives us a "remote control" for the Scaffold, so we can
-  // open the drawer from our own menu button (which sits inside the body).
+  final FirestoreService _firestoreService = FirestoreService();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   int selectedMenu = 0; // which drawer item is highlighted (0 = Notes)
+  bool isGrid = true; // true = 2 column grid, false = single list
+  bool isReversed = false; // sort order
+  String query = ''; // text typed in the search bar
 
-  // Called when a drawer item is tapped.
   void _onMenuSelect(int index) {
-    // Items 0 (Notes), 1 (Reminders), 3 (Archive), 4 (Deleted) are screens.
-    // Items 2, 5, 6 are actions, so we don't highlight them.
     const selectable = [0, 1, 3, 4];
     if (selectable.contains(index)) {
       setState(() => selectedMenu = index);
     }
-    // For now show a small message; later you can open real screens.
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('Menu item $index tapped')));
   }
 
-  bool isGrid = true; // true = 2 column grid, false = single list
-  String query = ''; // text typed in the search bar
-
-  // ----------------------------------------------------------
-  // Opens the editor screen. If [note] is given we edit it,
-  // otherwise we create a new one.
-  // "async/await" lets us wait for the editor screen to close
-  // and give us back a result.
-  // ----------------------------------------------------------
+  // Opens the editor screen to create or edit a note
   Future<void> _openEditor({Note? note}) async {
-    // Navigator.push opens a new screen on top of the current one.
     final result = await Navigator.push<Object?>(
       context,
       MaterialPageRoute(
@@ -99,54 +45,100 @@ class _HomePageState extends State<HomePage> {
       ),
     );
 
-    // Safety check: the screen may have been closed while we waited.
-    if (!mounted) return;
+    if (!mounted || result == null) return;
 
-    // setState tells Flutter: "data changed, redraw the UI".
-    setState(() {
-      if (result == 'delete' && note != null) {
-        notes.remove(note);
-      } else if (result is Note && note == null) {
-        notes.insert(0, result); // new notes appear at the top
+    if (result == 'delete' && note != null && note.id != null) {
+      await _firestoreService.deleteNote(note.id!);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Note deleted')),
+        );
       }
-      // When editing, the Note object is changed directly,
-      // so setState alone refreshes the screen.
-    });
+    } else if (result is Note) {
+      if (note == null || note.id == null) {
+        await _firestoreService.addNote(result);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Note added to Firestore')),
+          );
+        }
+      } else {
+        await _firestoreService.updateNote(result);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Note updated')),
+          );
+        }
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Filter notes using the search text (case-insensitive).
-    final filtered = notes.where((n) {
-      final text = '${n.title} ${n.body}'.toLowerCase();
-      return text.contains(query.toLowerCase());
-    }).toList();
-
-    // Scaffold = basic page layout (body, app bar, floating button...)
     return Scaffold(
-      key: _scaffoldKey, // attach the remote control
+      key: _scaffoldKey,
       backgroundColor: bgColor,
-
-      // The slide-in menu. Swiping from the left edge also opens it.
       drawer: KeepDrawer(selectedIndex: selectedMenu, onSelect: _onMenuSelect),
-
-      // SafeArea keeps content away from the phone's notch/status bar.
       body: SafeArea(
-        // Column places children vertically, one below another.
         child: Column(
           children: [
             _buildSearchBar(),
-            // Expanded makes its child fill all remaining space.
             Expanded(
-              child: isGrid ? _buildGrid(filtered) : _buildList(filtered),
+              child: StreamBuilder<List<Note>>(
+                stream: _firestoreService.getNotesStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Text(
+                          'Error connecting to Firestore: ${snapshot.error}\n\n'
+                          'Make sure Firestore Database rules in Firebase Console allow read/write.',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final allNotes = snapshot.data ?? [];
+                  var filtered = allNotes.where((n) {
+                    final text = '${n.title} ${n.body}'.toLowerCase();
+                    return text.contains(query.toLowerCase());
+                  }).toList();
+
+                  if (isReversed) {
+                    filtered = filtered.reversed.toList();
+                  }
+
+                  if (filtered.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: Text(
+                          query.isEmpty
+                              ? 'No notes yet. Tap + below to add your first note to Firebase!'
+                              : 'No matching notes found.',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return isGrid ? _buildGrid(filtered) : _buildList(filtered);
+                },
+              ),
             ),
           ],
         ),
       ),
-
-      // The blue "+" button at the bottom right.
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _openEditor(), // runs when tapped
+        onPressed: () => _openEditor(),
         backgroundColor: const Color(0xFF2B50AA),
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
@@ -155,83 +147,47 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ----------------------------------------------------------
-  // SEARCH BAR  (menu icon | text field | view toggle | sort | avatar)
-  // ----------------------------------------------------------
+  // Search bar at the top
   Widget _buildSearchBar() {
-    // Container = a box where you can set color, margin, padding, shape.
     return Container(
-      margin: const EdgeInsets.fromLTRB(
-        12,
-        10,
-        12,
-        10,
-      ), // space outside the box
+      margin: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       padding: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
         color: searchBarColor,
-        borderRadius: BorderRadius.circular(30), // fully rounded ends
+        borderRadius: BorderRadius.circular(30),
       ),
       height: 56,
-      // Row places children horizontally.
       child: Row(
         children: [
-          // IconButton = a tappable icon
           IconButton(
             icon: const Icon(Icons.menu),
-            onPressed: () =>
-                _scaffoldKey.currentState?.openDrawer(), // later: open a Drawer
+            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
           ),
-          // TextField needs a bounded width inside a Row, so we
-          // wrap it in Expanded to take all free horizontal space.
           Expanded(
             child: TextField(
-              // onChanged runs on every key press
               onChanged: (value) => setState(() => query = value),
               decoration: const InputDecoration(
-                hintText: 'Search',
-                border: InputBorder.none, // remove default underline
+                hintText: 'Search your notes',
+                border: InputBorder.none,
               ),
               style: const TextStyle(fontSize: 18),
             ),
           ),
           IconButton(
-            // Show a different icon depending on the current mode
             icon: Icon(isGrid ? Icons.view_agenda_outlined : Icons.grid_view),
             onPressed: () => setState(() => isGrid = !isGrid),
           ),
           IconButton(
             icon: const Icon(Icons.swap_vert),
-            onPressed: () {
-              // Simple "sort" - reverse the list order
-              setState(() {
-                final reversed = notes.reversed.toList();
-                notes
-                  ..clear()
-                  ..addAll(reversed);
-              });
-            },
+            onPressed: () => setState(() => isReversed = !isReversed),
           ),
-          // CircleAvatar = round profile picture / letter
-          // const CircleAvatar(
-          //   radius: 20,
-          //   backgroundColor: Color(0xFF5B6BD5),
-          //   child: Text(
-          //     'a',
-          //     style: TextStyle(fontSize: 20, color: Colors.white),
-          //   ),
-          // ),
-          const SizedBox(width: 8), // SizedBox = empty spacer
+          const SizedBox(width: 8),
         ],
       ),
     );
   }
 
-  // ----------------------------------------------------------
-  // GRID VIEW  (Keep's two-column "masonry" layout)
-  // We split notes into a left and right column. Each column can
-  // have a different height, which gives the staggered look.
-  // ----------------------------------------------------------
+  // Two-column grid view
   Widget _buildGrid(List<Note> list) {
     final left = <Widget>[];
     final right = <Widget>[];
@@ -244,7 +200,6 @@ class _HomePageState extends State<HomePage> {
           onTap: () => _openEditor(note: list[i]),
         ),
       );
-      // even index -> left column, odd index -> right column
       if (i % 2 == 0) {
         left.add(card);
       } else {
@@ -252,31 +207,20 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    // SingleChildScrollView lets the content scroll vertically.
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(
-        12,
-        4,
-        12,
-        100,
-      ), // bottom space for the + button
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
       child: Row(
-        // start = align both columns to the top
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(child: Column(children: left)),
-          const SizedBox(width: 10), // gap between columns
+          const SizedBox(width: 10),
           Expanded(child: Column(children: right)),
         ],
       ),
     );
   }
 
-  // ----------------------------------------------------------
-  // LIST VIEW  (one note per row)
-  // ListView.builder only builds items that are on screen,
-  // so it stays fast even with thousands of notes.
-  // ----------------------------------------------------------
+  // Single-column list view
   Widget _buildList(List<Note> list) {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
