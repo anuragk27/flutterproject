@@ -3,7 +3,6 @@
 // Second screen: create a new note or edit an existing one.
 // ============================================================
 
-// import 'package:flutter/material.dart';
 import 'package:material_ui/material_ui.dart';
 import '../models/note.dart';
 
@@ -18,11 +17,9 @@ class NoteEditorPage extends StatefulWidget {
 }
 
 class _NoteEditorPageState extends State<NoteEditorPage> {
-  // A controller reads/sets the text inside a TextField.
   late final TextEditingController titleController;
   late final TextEditingController bodyController;
 
-  // initState runs ONCE when the screen is created.
   @override
   void initState() {
     super.initState();
@@ -30,7 +27,6 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
     bodyController = TextEditingController(text: widget.note.body);
   }
 
-  // dispose runs when the screen closes - free memory here.
   @override
   void dispose() {
     titleController.dispose();
@@ -54,10 +50,9 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:Colors.white,
-      // AppBar = top bar with back button and actions
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor:Colors.white,
+        backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
