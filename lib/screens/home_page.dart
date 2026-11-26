@@ -3,6 +3,7 @@ import '../models/note.dart';
 import '../services/firestore_service.dart';
 import '../widgets/keep_drawer.dart';
 import '../widgets/note_card.dart';
+import 'deleted_notes_page.dart';
 import 'note_editor_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -13,29 +14,34 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Colors used on this screen
   static const Color bgColor = Colors.white;
   static const Color searchBarColor = Color(0xFFF1F3F4);
 
   final FirestoreService _firestoreService = FirestoreService();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  int selectedMenu = 0; // which drawer item is highlighted (0 = Notes)
-  bool isGrid = true; // true = 2 column grid, false = single list
-  bool isReversed = false; // sort order
-  String query = ''; // text typed in the search bar
+  int selectedMenu = 0;
+  bool isGrid = true;
+  bool isReversed = false;
+  String query = '';
 
   void _onMenuSelect(int index) {
-    const selectable = [0, 1, 3, 4];
+    // 0 = Notes, 3 = Archive are persistent views; 4 = Deleted is navigation-only
+    const selectable = [0, 3];
     if (selectable.contains(index)) {
       setState(() => selectedMenu = index);
     }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Menu item $index tapped')));
+
+    // Index 4 = "Deleted" → open the Deleted Notes page
+    if (index == 4) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const DeletedNotesPage()),
+      );
+    }
   }
 
-  // Opens the editor screen to create or edit a note
+  // Opens the editor to create or edit a note
   Future<void> _openEditor({Note? note}) async {
     final result = await Navigator.push<Object?>(
       context,
@@ -48,10 +54,20 @@ class _HomePageState extends State<HomePage> {
     if (!mounted || result == null) return;
 
     if (result == 'delete' && note != null && note.id != null) {
-      await _firestoreService.deleteNote(note.id!);
+      // Soft-delete: move to trash collection
+      await _firestoreService.moveToTrash(note);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Note deleted')),
+          SnackBar(
+            content: const Text('Note moved to Deleted'),
+            action: SnackBarAction(
+              label: 'VIEW',
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DeletedNotesPage()),
+              ),
+            ),
+          ),
         );
       }
     } else if (result is Note) {
@@ -59,7 +75,7 @@ class _HomePageState extends State<HomePage> {
         await _firestoreService.addNote(result);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Note added to Firestore')),
+            const SnackBar(content: Text('Note saved')),
           );
         }
       } else {
@@ -111,9 +127,7 @@ class _HomePageState extends State<HomePage> {
                     return text.contains(query.toLowerCase());
                   }).toList();
 
-                  if (isReversed) {
-                    filtered = filtered.reversed.toList();
-                  }
+                  if (isReversed) filtered = filtered.reversed.toList();
 
                   if (filtered.isEmpty) {
                     return Center(
@@ -121,16 +135,19 @@ class _HomePageState extends State<HomePage> {
                         padding: const EdgeInsets.all(32.0),
                         child: Text(
                           query.isEmpty
-                              ? 'No notes yet. Tap + below to add your first note to Firebase!'
+                              ? 'No notes yet. Tap + to add your first note!'
                               : 'No matching notes found.',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 16, color: Colors.grey),
+                          style: const TextStyle(
+                              fontSize: 16, color: Colors.grey),
                         ),
                       ),
                     );
                   }
 
-                  return isGrid ? _buildGrid(filtered) : _buildList(filtered);
+                  return isGrid
+                      ? _buildGrid(filtered)
+                      : _buildList(filtered);
                 },
               ),
             ),
@@ -141,13 +158,13 @@ class _HomePageState extends State<HomePage> {
         onPressed: () => _openEditor(),
         backgroundColor: const Color(0xFF2B50AA),
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         child: const Icon(Icons.add, size: 36),
       ),
     );
   }
 
-  // Search bar at the top
   Widget _buildSearchBar() {
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 10, 12, 10),
@@ -165,7 +182,7 @@ class _HomePageState extends State<HomePage> {
           ),
           Expanded(
             child: TextField(
-              onChanged: (value) => setState(() => query = value),
+              onChanged: (v) => setState(() => query = v),
               decoration: const InputDecoration(
                 hintText: 'Search your notes',
                 border: InputBorder.none,
@@ -174,7 +191,9 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           IconButton(
-            icon: Icon(isGrid ? Icons.view_agenda_outlined : Icons.grid_view),
+            icon: Icon(isGrid
+                ? Icons.view_agenda_outlined
+                : Icons.grid_view),
             onPressed: () => setState(() => isGrid = !isGrid),
           ),
           IconButton(
@@ -187,26 +206,17 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Two-column grid view
   Widget _buildGrid(List<Note> list) {
     final left = <Widget>[];
     final right = <Widget>[];
-
     for (int i = 0; i < list.length; i++) {
       final card = Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: NoteCard(
-          note: list[i],
-          onTap: () => _openEditor(note: list[i]),
-        ),
+            note: list[i], onTap: () => _openEditor(note: list[i])),
       );
-      if (i % 2 == 0) {
-        left.add(card);
-      } else {
-        right.add(card);
-      }
+      (i % 2 == 0 ? left : right).add(card);
     }
-
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
       child: Row(
@@ -220,20 +230,15 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Single-column list view
   Widget _buildList(List<Note> list) {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
       itemCount: list.length,
-      itemBuilder: (context, index) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: NoteCard(
-            note: list[index],
-            onTap: () => _openEditor(note: list[index]),
-          ),
-        );
-      },
+      itemBuilder: (_, i) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: NoteCard(
+            note: list[i], onTap: () => _openEditor(note: list[i])),
+      ),
     );
   }
 }
