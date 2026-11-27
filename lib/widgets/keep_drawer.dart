@@ -35,14 +35,14 @@ class KeepDrawer extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.fromLTRB(16, 16, 16, 20),
               child: Text(
-                'To Do',
+                'Notes',
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
               ),
             ),
 
             // ---- Menu items ----
             // Each call builds one row. Index 0..3 can be "selected".
-            _item(context, index: 0, icon: Icons.lightbulb_outline, label: 'Notes'),
+            _item(context, index: 0, icon: Icons.lightbulb_outline, label: 'All Notes'),
             // _item(context, index: 1, icon: Icons.notifications_none, label: 'Reminders'),
             // _item(context, index: 2, icon: Icons.add, label: 'Create new label'),
             _item(context, index: 3, icon: Icons.archive_outlined, label: 'Archive'),
