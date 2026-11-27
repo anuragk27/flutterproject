@@ -5,12 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "todo_app",
+            "name": "notes_app",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "todo_app (Device Preview)",
+            "name": "notes_app (Device Preview)",
             "request": "launch",
             "type": "dart",
             "args": [
@@ -18,13 +18,13 @@
             ]
         },
         {
-            "name": "todo_app (profile mode)",
+            "name": "notes_app (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "todo_app (release mode)",
+            "name": "notes_app (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

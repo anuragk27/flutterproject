@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:todo_app/main.dart';
+import 'package:notes_app/main.dart';
 
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
