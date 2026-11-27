@@ -1,8 +1,6 @@
 <<<<<<< HEAD
 # notes_app
 =======
-# To Do Mobile App
->>>>>>> b537d9a6fb095e1d97c21261ef97755c35a53f9c
 
 A new Flutter project.
 
