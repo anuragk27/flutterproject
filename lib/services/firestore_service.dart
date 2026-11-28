@@ -15,9 +15,27 @@ class FirestoreService {
   Stream<List<Note>> getNotesStream() {
     if (Firebase.apps.isEmpty) return Stream.value([]);
     return _notesRef
+        .where('isArchived', isEqualTo: false)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((s) => s.docs.map((d) => Note.fromFirestore(d)).toList());
+  }
+
+  Stream<List<Note>> getArchivedNotesStream() {
+    if (Firebase.apps.isEmpty) return Stream.value([]);
+    return _notesRef
+        .where('isArchived', isEqualTo: true)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((s) => s.docs.map((d) => Note.fromFirestore(d)).toList());
+  }
+
+  Future<void> setArchived(String noteId, bool archived) async {
+    if(Firebase.apps.isEmpty ) return;
+    await _notesRef.doc(noteId).update({
+      'isArchived': archived,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<void> addNote(Note note) async {
@@ -70,6 +88,7 @@ class FirestoreService {
     batch.set(_notesRef.doc(), {
       'title': note.title,
       'body': note.body,
+      'isArchived': false,
       'createdAt': FieldValue.serverTimestamp(),
     });
 

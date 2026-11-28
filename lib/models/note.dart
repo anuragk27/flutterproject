@@ -10,15 +10,17 @@ class Note {
   String? id;
   String title;
   String body;
+  bool isArchived;
 
   // Named parameters in { } with default values.
-  Note({this.id, this.title = '', this.body = ''});
+  Note({this.id, this.title = '', this.body = '', this.isArchived = false,});
 
   // Convert Note object to a Map for Firestore
   Map<String, dynamic> toMap() {
     return {
       'title': title,
       'body': body,
+      'isArchived': isArchived,
       'createdAt': FieldValue.serverTimestamp(),
     };
   }
@@ -30,6 +32,7 @@ class Note {
       id: doc.id,
       title: data['title'] ?? '',
       body: data['body'] ?? '',
+      isArchived: data['isArchived'] ?? false,
     );
   }
 }

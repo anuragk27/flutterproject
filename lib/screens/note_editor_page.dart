@@ -59,11 +59,24 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
           onPressed: _save, // saving on back, just like Keep
         ),
         actions: [
-          if (!widget.isNew)
+          if (!widget.isNew) ...[
+            IconButton(
+              icon: Icon(
+                widget.note.isArchived
+                    ? Icons.unarchive_outlined
+                    : Icons.archive_outlined,
+              ),
+              tooltip: widget.note.isArchived ? 'Unarchive' : 'Archive',
+              onPressed: () => Navigator.pop(
+                context,
+                widget.note.isArchived ? 'unarchive' : 'archive',
+              ),
+            ),
             IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: () => Navigator.pop(context, 'delete'),
             ),
+          ],
           IconButton(icon: const Icon(Icons.check), onPressed: _save),
         ],
       ),

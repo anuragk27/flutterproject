@@ -70,6 +70,23 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       }
+    } else if ((result == 'archive' || result == 'unarchive') &&
+        note != null &&
+        note.id != null) {
+      final shouldArchive = result == 'archive';
+      await _firestoreService.setArchived(note.id!, shouldArchive);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(shouldArchive ? 'Note archived' : 'Note unarchived'),
+            action: SnackBarAction(
+              label: 'UNDO',
+              onPressed: () =>
+                  _firestoreService.setArchived(note.id!, !shouldArchive),
+            ),
+          ),
+        );
+      }
     } else if (result is Note) {
       if (note == null || note.id == null) {
         await _firestoreService.addNote(result);
@@ -101,7 +118,9 @@ class _HomePageState extends State<HomePage> {
             _buildSearchBar(),
             Expanded(
               child: StreamBuilder<List<Note>>(
-                stream: _firestoreService.getNotesStream(),
+                stream: selectedMenu == 3
+                    ? _firestoreService.getArchivedNotesStream()
+                    : _firestoreService.getNotesStream(),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return Center(
@@ -135,7 +154,9 @@ class _HomePageState extends State<HomePage> {
                         padding: const EdgeInsets.all(32.0),
                         child: Text(
                           query.isEmpty
-                              ? 'No notes yet. Tap + to add your first note!'
+                              ? (selectedMenu == 3
+                                  ? 'Your archived notes appear here.'
+                                  : 'No notes yet. Tap + to add your first note!')
                               : 'No matching notes found.',
                           textAlign: TextAlign.center,
                           style: const TextStyle(
@@ -154,14 +175,16 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _openEditor(),
-        backgroundColor: const Color(0xFF2B50AA),
-        foregroundColor: Colors.white,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        child: const Icon(Icons.add, size: 36),
-      ),
+      floatingActionButton: selectedMenu == 3
+          ? null
+          : FloatingActionButton(
+              onPressed: () => _openEditor(),
+              backgroundColor: const Color(0xFF2B50AA),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18)),
+              child: const Icon(Icons.add, size: 36),
+            ),
     );
   }
 
@@ -183,8 +206,10 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: TextField(
               onChanged: (v) => setState(() => query = v),
-              decoration: const InputDecoration(
-                hintText: 'Search your notes',
+              decoration: InputDecoration(
+                hintText: selectedMenu == 3
+                    ? 'Search archived notes'
+                    : 'Search your notes',
                 border: InputBorder.none,
               ),
               style: const TextStyle(fontSize: 18),
